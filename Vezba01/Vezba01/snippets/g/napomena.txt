@@ -1,0 +1,1 @@
+Other.py treba da bude oznacen kao "Startup project"
