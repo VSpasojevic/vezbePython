@@ -37,12 +37,11 @@ def broadcastMsg(list_of_remote_server_address, msg):
 
 def rcvMsgs(queue, no_of_messages_to_receive):
     msgs = []
-
+    
     for i in range(no_of_messages_to_receive):
-        mess = rcvMsg(queue)
-        #print("MESS : ",mess.message, mess.type,mess.src, mess.dest)
-        msgs.append(mess)
-        
+        node = rcvMsg(queue)
+        msgs.append(node)
+        print("***********node*********", node)
         
     print("MSG::::",msgs)    
     

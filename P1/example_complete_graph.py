@@ -11,11 +11,14 @@ class Mess:
         self.dest = list()
     
 class Node:
-    def __init__(self,parent,other,children,message):
-        self.parent = parent
-        self.message = message
-        self.children = list()
-        self.other = list()
+    def __init__(self,neighbours , id):
+        self.id = id
+        self.messageType = None
+        self.neighbours = neighbours
+        self.parent = None
+        self.message = None
+        self.children = None
+        self.other = None
 
 def main():
     # Parse command line arguments
@@ -32,9 +35,27 @@ def main():
     # Creat list of all pors
     allPorts = [6000 + i for i in range(number_of_proc)]
     
+    
+    neighbours_dict = {0 : [3,2],
+                       1 : [0,2,3],
+                       2 : [0,1,3],
+                       3 : [1,2]}
+
+                       
+    
+    
+    neighbours_ports = [6000 + i for i in neighbours_dict[proc_index]]
+    
     # Set ports
     local_port =   allPorts[proc_index]
     remote_ports = [x for x in allPorts if x != local_port]
+    
+    node0 = Node(neighbours_dict[0],0)
+    node1 = Node(neighbours_dict[1],1)
+    node2 = Node(neighbours_dict[2],2)
+    node3 = Node(neighbours_dict[3],3)
+    
+    nodes = [node0,node1,node2,node3]
     
     # Create queue for messages from the local server
     queue = Queue()
@@ -44,7 +65,7 @@ def main():
     server.start()
     
     # Set the lst of the addresses of the peer node's servers
-    remote_server_addresses = [('localhost', port) for port in remote_ports]
+    remote_server_addresses = [('localhost', port) for port in neighbours_ports]
     
     # Send a message to the peer node and receive message from the peer node.
     # To exit send message: exit.
@@ -53,35 +74,53 @@ def main():
     
     while True:
         # Input message
-        
-        
+ 
         if proc_index == 0:        
             msg = input('Enter message: ')
             #print('Message sent: %s \n' % (msg))
             
-            message = Mess(0,msg,allPorts[proc_index],remote_ports)
-
+            node0.message = Mess("M",msg,allPorts[proc_index],neighbours_ports)
+            
+            
+            
+            # Send message to peer node's servers
+            broadcastMsg(remote_server_addresses, node0)
+            
             if msg == 'exit':
                 sendMsg( ('localhost', local_port), 'exit')
                 break
+                
+            msgs = rcvMsgs(queue, len(neighbours_ports))
             
-            # Send message to peer node's servers
-            broadcastMsg(remote_server_addresses, message)
-            
-            msgs = rcvMsgs(queue, number_of_proc - 1)
             
             for i in msgs:
-                print('Messages received:', i.message)
-            
-            
+               print('Messages received:', i.message.message,i.message.src)
+               print("MESSAGESSSSS: ",i.message.type)
+
         else:
             
             msg = rcvMsg(queue)
-            print("QUEEEEE: ",msg.message,msg.src)
+            nodeTmp = nodes[proc_index] 
+            print("------ID------",nodeTmp.id)
             
-            message = Mess(0,"PRIMIO",allPorts[proc_index],msg.src)
+            if(msg.message.type == "M"):
+                if(nodeTmp.parent == None):
+                    nodeTmp.parent = msg.id
+                    messageTmp = nodeTmp.message
+                    nodeTmp.message = Mess("P","",allPorts[proc_index],msg.message.src)
+                    sendMsg(('localhost', msg.message.src),nodeTmp)
+                else:   
+                    print("Cao")
+                    
+            print("QUEEEEE: ",msg.message.message,msg.message.src)
             
-            sendMsg(('localhost', msg.src),message)
+            if msg.message.message == 'exit':
+                sendMsg( ('localhost', local_port), 'exit')
+                break
+            
+            nodeTmp.message = Mess(0,"PRIMIO",allPorts[proc_index],msg.message.src)
+            
+            sendMsg(('localhost', msg.message.src),nodeTmp)
     
     # Join with server process
     server.join()
