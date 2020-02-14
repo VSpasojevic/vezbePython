@@ -1,6 +1,7 @@
 import sys
 from multiprocessing import Process, Queue
 from msg_passing_api import *
+import time
 
 
 class Mess:
@@ -17,8 +18,8 @@ class Node:
         self.neighbours = neighbours
         self.parent = None
         self.message = None
-        self.children = None
-        self.other = None
+        self.children = list()
+        self.other = list()
 
 def main():
     # Parse command line arguments
@@ -36,7 +37,7 @@ def main():
     allPorts = [6000 + i for i in range(number_of_proc)]
     
     
-    neighbours_dict = {0 : [3,2],
+    neighbours_dict = {0 : [1,2],
                        1 : [0,2,3],
                        2 : [0,1,3],
                        3 : [1,2]}
@@ -80,22 +81,27 @@ def main():
             #print('Message sent: %s \n' % (msg))
             
             node0.message = Mess("M",msg,allPorts[proc_index],neighbours_ports)
-            
-            
-            
+
             # Send message to peer node's servers
             broadcastMsg(remote_server_addresses, node0)
+            
+            print("NEIGHBOURS PORTS FROM SERVER----> ",neighbours_ports[0])
             
             if msg == 'exit':
                 sendMsg( ('localhost', local_port), 'exit')
                 break
+            for i in range(0,1):
+                msgs = rcvMsg(queue)
+                if msgs.message.type == "P":
+                    node0.children.append(msgs.message.src)
+                elif msgs.message.type == "A":
+                    node0.other.append(msgs.message.src)
                 
-            msgs = rcvMsgs(queue, len(neighbours_ports))
             
             
-            for i in msgs:
-               print('Messages received:', i.message.message,i.message.src)
-               print("MESSAGESSSSS: ",i.message.type)
+#           for i in msgs:
+#              print('Messages received:', i.message.message,i.message.src)
+#               print("MESSAGESSSSS: ",i.message.type)
 
         else:
             
@@ -103,14 +109,35 @@ def main():
             nodeTmp = nodes[proc_index] 
             print("------ID------",nodeTmp.id)
             
+ 
+            
             if(msg.message.type == "M"):
                 if(nodeTmp.parent == None):
                     nodeTmp.parent = msg.id
                     messageTmp = nodeTmp.message
-                    nodeTmp.message = Mess("P","",allPorts[proc_index],msg.message.src)
+                    nodeTmp.message = Mess("P","asdasdasdasds",allPorts[proc_index],msg.message.src)
                     sendMsg(('localhost', msg.message.src),nodeTmp)
+                     
+                    print("-----------------", nodeTmp.neighbours)
+                    for i in nodeTmp.neighbours:
+                        if i != nodeTmp.parent:
+                            print("Usao u proveru komsija    ", i)
+                            destPortTmp = 6000 + i;
+                            print("Destination port-----",destPortTmp)
+                            nodeTmp.message = Mess("M",messageTmp,allPorts[proc_index],destPortTmp) 
+                            sendMsg(('localhost', destPortTmp),nodeTmp)
                 else:   
                     print("Cao")
+                    
+            elif msg.message.type == "P":
+                print("USAO U PARENT ")
+                nodeTmp.children.append(msg.message.src)
+                print("AAAAAAAAAAAAAAAAAAAAAA", msg.message.src)
+                
+                break
+            elif msg.message.type == "A":
+                print("USAO U ALREADY ")
+                break
                     
             print("QUEEEEE: ",msg.message.message,msg.message.src)
             
@@ -118,7 +145,7 @@ def main():
                 sendMsg( ('localhost', local_port), 'exit')
                 break
             
-            nodeTmp.message = Mess(0,"PRIMIO",allPorts[proc_index],msg.message.src)
+            nodeTmp.message = Mess("P","PRIMIO",allPorts[proc_index],msg.message.src)
             
             sendMsg(('localhost', msg.message.src),nodeTmp)
     
