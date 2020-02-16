@@ -4,6 +4,8 @@ from msg_passing_api import *
 import time
 import json
 
+jsonFileName = "nodes.json"
+
 class Mess:
     def __init__(self,type,message,src_port,dest_port):
         self.type = type
@@ -24,7 +26,7 @@ class Node:
 def readFromJSON():
     d = dict()
 
-    with open("nodes.json", "r") as read_file:
+    with open(jsonFileName, "r") as read_file:
         data = json.load(read_file)
     
     for n in data['Nodes']:
