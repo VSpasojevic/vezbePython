@@ -134,7 +134,7 @@ def main():
                     messageTmp = nodeTmp.message
                     nodeTmp.message = Mess("A","Already",allPorts[proc_index],msg.message.src)
                     sendMsg(('localhost', msg.message.src),nodeTmp)
-                    
+
             sendMsg( ('localhost', local_port), 'exit')
             break
 
