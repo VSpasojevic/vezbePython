@@ -1,0 +1,37 @@
+{  
+    "Nodes":[
+    {   
+    "id": 0, 
+    "neighbours": [1, 2]
+    },
+    {   
+    "id": 1, 
+    "neighbours": [0, 2, 3, 4]
+    },
+    {   
+    "id": 2, 
+    "neighbours": [0, 1, 5]
+    },
+    {   
+    "id": 3, 
+    "neighbours": [1]
+    },
+    {   
+    "id": 4, 
+    "neighbours": [1, 5, 6]
+    },
+    {   
+    "id": 5, 
+    "neighbours": [2, 4, 7]
+    },
+    {   
+    "id": 6, 
+    "neighbours": [4, 7]
+    },
+    {   
+    "id": 7, 
+    "neighbours": [5, 6]
+    }
+    ]
+    
+}
